@@ -43,6 +43,11 @@ Rails.application.routes.draw do
           collection do
             post :read
           end
+          
+          member do
+            post :react
+            get :reactions, to: 'reactions#index'
+          end
         end
       end
     end
