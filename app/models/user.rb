@@ -20,7 +20,6 @@ class User < ApplicationRecord
   validates :private_repos_count, :stars_count, :private_stars_count,
             numericality: { only_integer: true, greater_than_or_equal_to: 0 },
             allow_nil: false
-  validates :github_created_at, presence: true
 
   # Scopes
   scope :online, -> { where(online: true) }
@@ -53,6 +52,5 @@ class User < ApplicationRecord
     self.stars_count ||= 0
     self.private_stars_count ||= 0
     self.online ||= false
-    self.github_created_at ||= Time.current
   end
 end

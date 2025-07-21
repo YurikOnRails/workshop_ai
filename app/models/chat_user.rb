@@ -83,3 +83,4 @@ class ChatUser < ApplicationRecord
     # This will be implemented when we have the notification system
     # Notify other participants that a new user has joined the chat
   end
+end

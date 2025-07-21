@@ -6,7 +6,7 @@ class UserRepository < ApplicationRecord
   # Validations
   validates :user_id, uniqueness: { scope: :repository_id, message: 'is already associated with this repository' }
   validates :admin, inclusion: { in: [true, false] }
-  validates :last_accessed_at, presence: true, on: :update
+  validates :last_accessed_at, presence: true
 
   # Scopes
   scope :admins, -> { where(admin: true) }

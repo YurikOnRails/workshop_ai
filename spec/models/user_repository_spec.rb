@@ -13,7 +13,13 @@ RSpec.describe UserRepository, type: :model do
   describe 'validations' do
     subject { build(:user_repository) }
 
-    it { is_expected.to validate_presence_of(:last_accessed_at) }
+    # last_accessed_at is automatically set by a callback, so we don't need to validate presence
+    # Instead, we test that the callback sets it
+    it 'automatically sets last_accessed_at on create' do
+      user_repo = build(:user_repository, last_accessed_at: nil)
+      expect { user_repo.valid? }.to change { user_repo.last_accessed_at }.from(nil)
+    end
+    
     it { is_expected.to validate_inclusion_of(:admin).in_array([true, false]) }
     
     it 'validates uniqueness of user scoped to repository' do

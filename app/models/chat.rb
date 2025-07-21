@@ -98,3 +98,4 @@ class Chat < ApplicationRecord
     # This will be implemented when we have the creator information
     # chat_users.create!(user: creator)
   end
+end

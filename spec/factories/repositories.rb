@@ -2,13 +2,7 @@ FactoryBot.define do
   factory :repository do
     sequence(:github_repo_id) { |n| n }
     sequence(:name) { |n| "repo#{n}" }
-    sequence(:full_name) { |n| "user#{n}/repo#{n}" }
     private { false }
-    html_url { "https://github.com/#{full_name}" }
-    description { "A test repository" }
-    language { "Ruby" }
-    default_branch { "main" }
-    last_synced_at { Time.current }
     
     trait :private do
       private { true }

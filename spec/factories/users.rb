@@ -4,13 +4,10 @@ FactoryBot.define do
     sequence(:username) { |n| "user#{n}" }
     sequence(:email) { |n| "user#{n}@example.com" }
     avatar_url { "https://example.com/avatar.png" }
-    public_repos { 5 }
-    total_private_repos { 3 }
-    owned_private_repos { 2 }
+    private_repos_count { 3 }
     stars_count { 1 }
     private_stars_count { 1 }
     online { false }
-    github_created_at { 1.year.ago }
     
     trait :admin do
       admin { true }

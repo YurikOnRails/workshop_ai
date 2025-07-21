@@ -95,3 +95,4 @@ class Message < ApplicationRecord
       message_id: id
     )
   end
+end

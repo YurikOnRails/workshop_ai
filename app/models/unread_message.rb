@@ -78,3 +78,4 @@ class UnreadMessage < ApplicationRecord
     
     chat_user.decrement!(:unread_count)
   end
+end
