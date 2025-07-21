@@ -41,3 +41,4 @@ class UserRepository < ApplicationRecord
   def update_repository_timestamps
     repository.touch
   end
+end

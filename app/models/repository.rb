@@ -55,3 +55,4 @@ class Repository < ApplicationRecord
     self.last_synced_at ||= Time.current
     self.private = true if private.nil?
   end
+end
