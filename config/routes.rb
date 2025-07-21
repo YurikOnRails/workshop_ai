@@ -25,15 +25,24 @@ Rails.application.routes.draw do
   # API namespace for AJAX requests
   namespace :api do
     namespace :v1 do
-      resources :chats, only: [] do
+      # User endpoints
+      resources :users, only: [:index, :show]
+      get '/me', to: 'users#me'
+      post '/me/online', to: 'users#online'
+      post '/me/offline', to: 'users#offline'
+      
+      # Chat endpoints
+      resources :chats, only: [:index, :show] do
         member do
           post :typing
           post :mark_read
+          post :leave
         end
-      end
-      resources :messages, only: [] do
-        member do
-          post :react
+        
+        resources :messages, only: [:index, :create] do
+          collection do
+            post :read
+          end
         end
       end
     end
