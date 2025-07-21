@@ -6,6 +6,8 @@ class ApplicationController < ActionController::Base
   
   helper_method :current_user, :user_signed_in?
   
+  before_action :authenticate_user!
+  
   private
   
   def current_user
@@ -19,7 +21,7 @@ class ApplicationController < ActionController::Base
   def authenticate_user!
     return if user_signed_in?
     
-    session[:return_to] = request.original_url if request.get?
-    redirect_to root_path, alert: 'Please sign in to continue.'
+    session[:return_to] = request.original_url if request.get? && !request.xhr?
+    redirect_to login_path, alert: 'Please sign in to continue.'
   end
 end
