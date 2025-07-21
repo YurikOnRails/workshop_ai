@@ -6,6 +6,23 @@ class ChatsController < ApplicationController
   before_action :authorize_chat_access!, only: [:show]
   before_action :authorize_chat_management!, only: [:edit, :update, :destroy, :add_participant, :remove_participant, :promote_admin, :demote_admin]
   
+  # GET /chats/:id
+  def show
+    @messages = @chat.messages.includes(:user).order(created_at: :desc).limit(50).reverse
+    @message = @chat.messages.new
+    
+    # Mark messages as read
+    mark_messages_as_read
+    
+    # Track user activity
+    current_user.update_columns(last_seen_at: Time.current, online: true)
+    
+    respond_to do |format|
+      format.html
+      format.json { render json: @chat }
+    end
+  end
+  
   # GET /chats
   def index
     @chats = current_user.chats

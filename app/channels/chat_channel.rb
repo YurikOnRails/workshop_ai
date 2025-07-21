@@ -12,11 +12,23 @@ class ChatChannel < ApplicationCable::Channel
     # Stream from this channel
     stream_for @chat
     
+    # Update user's online status and last seen timestamp
+    update_user_presence(true)
+    
     # Mark messages as read when user subscribes
     mark_messages_as_read
+    
+    # Broadcast user's online status to other chat participants
+    broadcast_user_presence(true)
   end
   
   def unsubscribed
+    # Update user's online status when they disconnect
+    update_user_presence(false)
+    
+    # Broadcast user's offline status to other chat participants
+    broadcast_user_presence(false)
+    
     stop_all_streams
   end
   
@@ -27,6 +39,11 @@ class ChatChannel < ApplicationCable::Channel
       broadcast_typing
     when 'mark_read'
       mark_messages_as_read(data['last_message_id'])
+    when 'presence_ping'
+      # Update user's last seen timestamp
+      update_user_presence(true)
+      # Broadcast current presence status
+      broadcast_user_presence(current_user.online?)
     end
   end
   
@@ -40,6 +57,49 @@ class ChatChannel < ApplicationCable::Channel
       user_id: current_user.id,
       username: current_user.username,
       timestamp: Time.current.to_i
+    )
+  end
+  
+  private
+  
+  # Update user's presence status
+  def update_user_presence(online)
+    # Skip if no user or no change in status
+    return unless current_user
+    
+    # Update the user's online status and last seen timestamp
+    current_user.update_columns(
+      online: online,
+      last_seen_at: Time.current,
+      updated_at: Time.current
+    )
+    
+    # Update cache
+    Rails.cache.write(
+      "user_online_status_#{current_user.id}", 
+      online,
+      expires_in: 10.minutes
+    )
+  end
+  
+  # Broadcast user's presence status to all chat participants
+  def broadcast_user_presence(online)
+    return unless @chat && current_user
+    
+    # Get the count of online users in this chat
+    online_count = @chat.users.online.count
+    
+    # Broadcast the presence update
+    ChatChannel.broadcast_to(
+      @chat,
+      {
+        type: 'presence',
+        user_id: current_user.id,
+        username: current_user.username,
+        online: online,
+        online_count: online_count,
+        timestamp: Time.current.iso8601
+      }
     )
   end
   

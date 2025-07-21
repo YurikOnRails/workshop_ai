@@ -64,12 +64,17 @@ class Chat < ApplicationRecord
   end
   
   def unread_count_for(user)
-    return 0 unless last_message_id
+    return 0 unless user.present?
     
-    last_read = chat_users.find_by(user: user)&.last_read_at
-    return 0 unless last_read
+    chat_user = chat_users.find_by(user: user)
+    return 0 unless chat_user
     
-    messages.where('created_at > ?', last_read).count
+    messages.where('created_at > ?', chat_user.last_read_at || Time.at(0)).count
+  end
+  
+  # Returns the count of online users in this chat
+  def online_users_count
+    users.online.count
   end
   
   private

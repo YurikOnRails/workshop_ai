@@ -1,0 +1,5 @@
+update_offline_statuses:
+  cron: "* * * * *"  # Every minute
+  class: "UpdateOfflineStatusesJob"
+  queue: default
+  description: "Update users' online status to false if they haven't been active for 5 minutes"

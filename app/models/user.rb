@@ -56,3 +56,4 @@ class User < ApplicationRecord
     self.online ||= false
     self.github_created_at ||= Time.current
   end
+end

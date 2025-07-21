@@ -1,12 +1,16 @@
-<%= link_to chat_path(chat), class: "block hover:bg-gray-50 #{'bg-blue-50' if defined?(current_chat) && chat.id == current_chat.id}" do %>
-  <div class="px-4 py-3 border-b border-gray-200">
+<%= link_to chat_path(chat), class: "block hover:bg-gray-50 dark:hover:bg-gray-700 #{'bg-blue-50 dark:bg-blue-900' if defined?(current_chat) && chat.id == current_chat.id}" do %>
+  <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-600">
     <div class="flex items-center justify-between">
       <div class="flex items-center min-w-0">
         <% if chat.chat_type == 'direct' %>
           <% other_user = chat.users.where.not(id: current_user.id).first %>
-          <div class="relative flex-shrink-0">
+          <div class="relative flex-shrink-0 group" data-controller="tooltip" data-tooltip-text="<%= other_user.online? ? 'Online' : 'Offline' %>">
             <img class="h-10 w-10 rounded-full" src="<%= other_user.avatar_url || asset_path('default-avatar.png') %>" alt="">
-            <span class="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full <%= other_user.online? ? 'bg-green-400' : 'bg-gray-300' %> ring-2 ring-white"></span>
+            <span class="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full <%= other_user.online? ? 'bg-green-400' : 'bg-gray-400' %> ring-2 ring-white dark:ring-gray-800" title="<%= other_user.online? ? 'Online' : 'Last seen #{time_ago_in_words(other_user.last_seen_at)} ago' %>"></span>
+            <div class="tooltip opacity-0 invisible group-hover:opacity-100 group-hover:visible absolute z-10 inline-block px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm -top-12 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
+              <%= other_user.online? ? 'Online' : "Last seen #{time_ago_in_words(other_user.last_seen_at)} ago" %>
+              <div class="absolute w-2 h-2 -bottom-1 left-1/2 transform -translate-x-1/2 rotate-45 bg-gray-900"></div>
+            </div>
           </div>
           <div class="ml-3 min-w-0 flex-1">
             <div class="flex items-center justify-between">

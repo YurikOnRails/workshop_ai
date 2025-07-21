@@ -1,0 +1,103 @@
+<div class="flex flex-col h-screen bg-white dark:bg-gray-800">
+  <!-- Chat header -->
+  <div class="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <% if @chat.chat_type == 'direct' %>
+          <% other_user = @chat.users.where.not(id: current_user.id).first %>
+          <div class="relative">
+            <img class="h-10 w-10 rounded-full" src="<%= other_user.avatar_url || asset_path('default-avatar.png') %>" alt="<%= other_user.username %>">
+            <span class="absolute bottom-0 right-0 block h-3 w-3 rounded-full <%= other_user.online? ? 'bg-green-400' : 'bg-gray-400' %> ring-2 ring-white dark:ring-gray-800"></span>
+          </div>
+          <div>
+            <h1 class="text-lg font-semibold text-gray-900 dark:text-white"><%= other_user.username %></h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400 flex items-center">
+              <span class="inline-block h-2 w-2 rounded-full mr-1 <%= other_user.online? ? 'bg-green-400' : 'bg-gray-400' %>"></span>
+              <%= other_user.online? ? 'Online' : "Last seen #{time_ago_in_words(other_user.last_seen_at)} ago" %>
+            </p>
+          </div>
+        <% elsif @chat.chat_type.in?(%w[group repository]) %>
+          <div class="relative">
+            <div class="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-300 font-medium">
+              <%= @chat.name[0..1].upcase %>
+            </div>
+          </div>
+          <div>
+            <h1 class="text-lg font-semibold text-gray-900 dark:text-white"><%= @chat.name %></h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              <%= @chat.users_count %> <%= 'member'.pluralize(@chat.users_count) %>
+              <span class="mx-1">•</span>
+              <span class="text-green-500"><%= @chat.online_users_count %> online</span>
+            </p>
+          </div>
+        <% end %>
+      </div>
+      
+      <div class="flex items-center space-x-2">
+        <button type="button" class="p-2 rounded-full text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none">
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <% if @chat.chat_type.in?(%w[group repository]) && @chat.description.present? %>
+      <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+        <%= @chat.description %>
+      </div>
+    <% end %>
+  </div>
+  
+  <!-- Messages container -->
+  <div id="messages" class="flex-1 overflow-y-auto p-4 space-y-4" data-chat-id="<%= @chat.id %>">
+    <%= render @messages %>
+  </div>
+  
+  <!-- Message input -->
+  <div class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+    <%= render 'messages/form', chat: @chat, message: @message || @chat.messages.new %>
+  </div>
+</div>
+
+<%= javascript_tag nonce: true do %>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Scroll to bottom of messages
+    const messagesContainer = document.getElementById('messages');
+    if (messagesContainer) {
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+    
+    // Handle presence updates
+    const chatChannel = App.cable.subscriptions.subscriptions.find(sub => 
+      sub.identifier.includes('chat_<%= @chat.id %>')
+    );
+    
+    if (chatChannel) {
+      document.addEventListener('cable-ready:after-morph', function() {
+        // Update online status when receiving presence updates
+        chatChannel.consumer.connection.monitor.reconnect = true;
+        
+        chatChannel.consumer.connection.events.message = function(event) {
+          const data = JSON.parse(event.data);
+          if (data.type === 'ping') return;
+          
+          if (data.type === 'presence' && data.user_id) {
+            // Update the online status in the header
+            const statusElement = document.querySelector(`[data-user-id="${data.user_id}"] .status-indicator`);
+            if (statusElement) {
+              statusElement.className = `inline-block h-2 w-2 rounded-full mr-1 ${data.online ? 'bg-green-400' : 'bg-gray-400'}`;
+              statusElement.nextSibling.textContent = data.online ? 'Online' : `Last seen ${new Date().toLocaleTimeString()}`;
+            }
+            
+            // Update the online count in group/repository chats
+            const onlineCountElement = document.querySelector('.online-count');
+            if (onlineCountElement && data.online_count !== undefined) {
+              onlineCountElement.textContent = `${data.online_count} online`;
+            }
+          }
+        };
+      });
+    }
+  });
+<% end %>
