@@ -10,22 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_21_043609) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_21_050001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
   create_table "chat_users", force: :cascade do |t|
     t.bigint "chat_id", null: false
     t.bigint "user_id", null: false
-    t.datetime "joined_at", null: false
-    t.datetime "left_at"
-    t.boolean "muted", default: false, null: false
-    t.boolean "admin", default: false, null: false
+    t.datetime "joined_at", null: false, comment: "When the user joined the chat"
+    t.datetime "left_at", comment: "When the user left the chat (soft delete)"
+    t.boolean "muted", default: false, null: false, comment: "Whether the user has muted notifications for this chat"
+    t.boolean "admin", default: false, null: false, comment: "Whether the user has admin rights in this chat"
     t.datetime "last_read_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "added_by_id", null: false
-    t.integer "last_read_message_id", default: 0
+    t.integer "last_read_message_id", default: 0, comment: "ID of the last message read by the user in this chat"
     t.index ["added_by_id"], name: "index_chat_users_on_added_by_id"
     t.index ["chat_id", "user_id"], name: "index_chat_users_on_chat_and_user", unique: true
     t.index ["chat_id"], name: "index_chat_users_on_chat_id"
@@ -37,19 +37,20 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_21_043609) do
   end
 
   create_table "chats", force: :cascade do |t|
-    t.string "chat_type", null: false
+    t.string "chat_type", null: false, comment: "Type of chat: direct, group, or repository"
     t.bigint "repository_id"
     t.string "name"
     t.text "description"
     t.datetime "last_message_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.boolean "archived", default: false, null: false
-    t.integer "participants_count", default: 0, null: false
-    t.integer "messages_count", default: 0, null: false
+    t.boolean "archived", default: false, null: false, comment: "Whether the chat is archived (soft delete)"
+    t.integer "participants_count", default: 0, null: false, comment: "Counter cache for chat participants"
+    t.integer "messages_count", default: 0, null: false, comment: "Counter cache for messages in chat"
     t.bigint "last_message_id"
     t.index ["archived"], name: "index_chats_on_archived"
     t.index ["chat_type"], name: "index_chats_on_chat_type"
+    t.index ["created_at"], name: "index_chats_on_created_at"
     t.index ["last_message_at"], name: "index_chats_on_last_message_at"
     t.index ["last_message_id"], name: "index_chats_on_last_message_id"
     t.index ["messages_count"], name: "index_chats_on_messages_count"
@@ -66,19 +67,20 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_21_043609) do
     t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "message_type", default: "text", null: false
+    t.string "message_type", default: "text", null: false, comment: "Type of message: text, markdown, or code"
     t.index ["chat_id", "created_at"], name: "index_messages_on_chat_id_and_created_at"
     t.index ["chat_id"], name: "index_messages_on_chat_id"
+    t.index ["created_at"], name: "index_messages_on_created_at"
     t.index ["deleted_at"], name: "index_messages_on_deleted_at"
     t.index ["user_id"], name: "index_messages_on_user_id"
     t.check_constraint "length(TRIM(BOTH FROM content)) > 0 AND length(TRIM(BOTH FROM content)) <= 10000", name: "check_content_length"
-    t.check_constraint "message_type::text = ANY (ARRAY['text'::character varying::text, 'markdown'::character varying::text, 'code'::character varying::text])", name: "check_message_type"
+    t.check_constraint "message_type::text = ANY (ARRAY['text'::character varying, 'markdown'::character varying, 'code'::character varying]::text[])", name: "check_message_type"
   end
 
   create_table "repositories", force: :cascade do |t|
     t.bigint "github_repo_id", null: false
     t.string "name", null: false
-    t.boolean "private", default: false, null: false
+    t.boolean "private", default: false, null: false, comment: "Whether the repository is private"
     t.datetime "last_synced_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -90,8 +92,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_21_043609) do
   create_table "unread_messages", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.bigint "chat_id", null: false
-    t.bigint "last_read_message_id"
-    t.integer "unread_count", default: 0, null: false
+    t.bigint "last_read_message_id", comment: "ID of the last message read by the user in this chat"
+    t.integer "unread_count", default: 0, null: false, comment: "Number of unread messages for the user in this chat"
     t.datetime "last_notified_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -100,6 +102,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_21_043609) do
     t.index ["last_notified_at"], name: "index_unread_messages_on_last_notified_at"
     t.index ["last_read_message_id"], name: "index_unread_messages_on_last_read_message_id"
     t.index ["message_id"], name: "index_unread_messages_on_message_id"
+    t.index ["unread_count"], name: "index_unread_messages_on_unread_count"
     t.index ["user_id", "chat_id"], name: "index_unread_messages_on_user_and_chat", unique: true
     t.index ["user_id"], name: "index_unread_messages_on_user_id"
     t.check_constraint "unread_count >= 0", name: "check_unread_count"
@@ -109,7 +112,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_21_043609) do
   create_table "user_repositories", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.bigint "repository_id", null: false
-    t.boolean "admin", default: false, null: false
+    t.boolean "admin", default: false, null: false, comment: "Whether the user has admin rights for this repository"
     t.datetime "last_accessed_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

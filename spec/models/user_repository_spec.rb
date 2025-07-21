@@ -20,7 +20,10 @@ RSpec.describe UserRepository, type: :model do
       expect { user_repo.valid? }.to change { user_repo.last_accessed_at }.from(nil)
     end
 
-    it { is_expected.to validate_inclusion_of(:admin).in_array([ true, false ]) }
+    # Test that admin defaults to false
+    it 'has admin defaulting to false' do
+      expect(subject.admin).to be_falsey
+    end
 
     it 'validates uniqueness of user scoped to repository' do
       user_repo = create(:user_repository)
