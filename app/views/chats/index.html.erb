@@ -1,0 +1,498 @@
+<div class="flex h-full">
+  <!-- Sidebar -->
+  <div class="chat-sidebar bg-white overflow-y-auto">
+    <div class="p-4 border-b border-gray-200">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold text-gray-900">Chats</h2>
+        <button id="new-chat-button" class="text-indigo-600 hover:text-indigo-800">
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+        </button>
+      </div>
+      
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <input id="chat-search" type="text" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Search chats">
+      </div>
+    </div>
+    
+    <!-- Chat list -->
+    <div id="chat-list" class="divide-y divide-gray-200">
+      <% if @chats.any? %>
+        <% @chats.each do |chat| %>
+          <%= render 'chat_item', chat: chat, current_user: current_user %>
+        <% end %>
+      <% else %>
+        <div class="p-4 text-center text-gray-500">
+          <p>No chats yet. Start a new conversation!</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+  
+  <!-- Main chat area -->
+  <div class="flex-1 flex flex-col bg-gray-50">
+    <% if @chats.any? %>
+      <% if @chat %>
+        <%= render 'chat_window', chat: @chat, messages: @messages, current_user: current_user %>
+      <% else %>
+        <div class="flex-1 flex items-center justify-center">
+          <div class="text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
+            <h3 class="mt-2 text-lg font-medium text-gray-900">No chat selected</h3>
+            <p class="mt-1 text-sm text-gray-500">Select a chat or start a new conversation</p>
+            <div class="mt-6">
+              <button type="button" id="new-chat-button-2" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                New Chat
+              </button>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="flex-1 flex items-center justify-center">
+        <div class="text-center">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          </svg>
+          <h3 class="mt-2 text-lg font-medium text-gray-900">No conversations</h3>
+          <p class="mt-1 text-sm text-gray-500">Get started by creating a new chat</p>
+          <div class="mt-6">
+            <button type="button" id="new-chat-button-3" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+              <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              New Chat
+            </button>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+  
+  <!-- New chat modal -->
+  <div id="new-chat-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg w-full max-w-md mx-4">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-medium text-gray-900">New Chat</h3>
+          <button id="close-new-chat-modal" class="text-gray-400 hover:text-gray-500">
+            <span class="sr-only">Close</span>
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        <div class="mt-4">
+          <div class="flex flex-col space-y-4">
+            <div>
+              <label for="chat-type" class="block text-sm font-medium text-gray-700 mb-1">Chat Type</label>
+              <select id="chat-type" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                <option value="direct">Direct Message</option>
+                <option value="group">Group Chat</option>
+                <option value="repository">Repository Chat</option>
+              </select>
+            </div>
+            
+            <!-- Direct message fields -->
+            <div id="direct-fields">
+              <div>
+                <label for="recipient" class="block text-sm font-medium text-gray-700 mb-1">Recipient</label>
+                <div class="relative">
+                  <input type="text" id="recipient" class="block w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Search users...">
+                  <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                </div>
+                <div id="user-suggestions" class="mt-1 hidden max-h-40 overflow-y-auto border border-gray-200 rounded-md">
+                  <!-- User suggestions will be populated here -->
+                </div>
+              </div>
+            </div>
+            
+            <!-- Group chat fields -->
+            <div id="group-fields" class="hidden">
+              <div>
+                <label for="group-name" class="block text-sm font-medium text-gray-700 mb-1">Group Name</label>
+                <input type="text" id="group-name" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Enter group name">
+              </div>
+              <div>
+                <label for="group-members" class="block text-sm font-medium text-gray-700 mb-1">Add Members</label>
+                <div class="relative">
+                  <input type="text" id="group-members" class="block w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Search users...">
+                  <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                </div>
+                <div id="selected-members" class="mt-2 flex flex-wrap gap-2">
+                  <!-- Selected members will be added here -->
+                </div>
+                <div id="group-suggestions" class="mt-1 hidden max-h-40 overflow-y-auto border border-gray-200 rounded-md">
+                  <!-- User suggestions for group will be populated here -->
+                </div>
+              </div>
+            </div>
+            
+            <!-- Repository chat fields -->
+            <div id="repository-fields" class="hidden">
+              <div>
+                <label for="repository" class="block text-sm font-medium text-gray-700 mb-1">Repository</label>
+                <select id="repository" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                  <option value="">Select a repository</option>
+                  <% current_user.repositories.each do |repo| %>
+                    <option value="<%= repo.id %>"><%= repo.full_name %></option>
+                  <% end %>
+                </select>
+              </div>
+            </div>
+            
+            <div class="mt-4">
+              <button id="create-chat-button" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Create Chat
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%= javascript_tag nonce: true do %>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Toggle new chat modal
+    const newChatButtons = document.querySelectorAll('[id^=new-chat-button]');
+    const newChatModal = document.getElementById('new-chat-modal');
+    const closeNewChatModal = document.getElementById('close-new-chat-modal');
+    const chatTypeSelect = document.getElementById('chat-type');
+    const directFields = document.getElementById('direct-fields');
+    const groupFields = document.getElementById('group-fields');
+    const repositoryFields = document.getElementById('repository-fields');
+    
+    // Show/hide modal
+    newChatButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        newChatModal.classList.remove('hidden');
+      });
+    });
+    
+    closeNewChatModal.addEventListener('click', function() {
+      newChatModal.classList.add('hidden');
+    });
+    
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+      if (event.target === newChatModal) {
+        newChatModal.classList.add('hidden');
+      }
+    });
+    
+    // Toggle fields based on chat type
+    function toggleChatFields() {
+      const chatType = chatTypeSelect.value;
+      
+      directFields.classList.add('hidden');
+      groupFields.classList.add('hidden');
+      repositoryFields.classList.add('hidden');
+      
+      if (chatType === 'direct') {
+        directFields.classList.remove('hidden');
+      } else if (chatType === 'group') {
+        groupFields.classList.remove('hidden');
+      } else if (chatType === 'repository') {
+        repositoryFields.classList.remove('hidden');
+      }
+    }
+    
+    chatTypeSelect.addEventListener('change', toggleChatFields);
+    
+    // Initialize fields
+    toggleChatFields();
+    
+    // Handle user search for direct messages
+    const recipientInput = document.getElementById('recipient');
+    const userSuggestions = document.getElementById('user-suggestions');
+    
+    if (recipientInput && userSuggestions) {
+      let debounceTimer;
+      
+      recipientInput.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        const query = this.value.trim();
+        
+        if (query.length < 2) {
+          userSuggestions.classList.add('hidden');
+          return;
+        }
+        
+        debounceTimer = setTimeout(() => {
+          fetch(`/api/users/search?q=${encodeURIComponent(query)}`, {
+            headers: {
+              'Accept': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+          })
+          .then(response => response.json())
+          .then(users => {
+            if (users.length > 0) {
+              userSuggestions.innerHTML = users.map(user => `
+                <div class="p-2 hover:bg-gray-100 cursor-pointer" data-user-id="${user.id}">
+                  <div class="flex items-center">
+                    <img src="${user.avatar_url || '/default-avatar.png'}" alt="${user.username}" class="h-8 w-8 rounded-full mr-2">
+                    <span>${user.username}</span>
+                  </div>
+                </div>
+              `).join('');
+              
+              // Add click handler to user suggestions
+              userSuggestions.querySelectorAll('[data-user-id]').forEach(suggestion => {
+                suggestion.addEventListener('click', function() {
+                  const userId = this.getAttribute('data-user-id');
+                  const username = this.querySelector('span').textContent;
+                  const avatarUrl = this.querySelector('img').getAttribute('src');
+                  
+                  // Set the selected user
+                  recipientInput.value = username;
+                  recipientInput.setAttribute('data-user-id', userId);
+                  recipientInput.setAttribute('data-avatar-url', avatarUrl);
+                  
+                  userSuggestions.classList.add('hidden');
+                });
+              });
+              
+              userSuggestions.classList.remove('hidden');
+            } else {
+              userSuggestions.innerHTML = '<div class="p-2 text-gray-500">No users found</div>';
+              userSuggestions.classList.remove('hidden');
+            }
+          })
+          .catch(error => {
+            console.error('Error searching users:', error);
+            userSuggestions.innerHTML = '<div class="p-2 text-red-500">Error searching users</div>';
+            userSuggestions.classList.remove('hidden');
+          });
+        }, 300);
+      });
+      
+      // Hide suggestions when clicking outside
+      document.addEventListener('click', function(event) {
+        if (!recipientInput.contains(event.target) && !userSuggestions.contains(event.target)) {
+          userSuggestions.classList.add('hidden');
+        }
+      });
+    }
+    
+    // Handle group member selection
+    const groupMembersInput = document.getElementById('group-members');
+    const groupSuggestions = document.getElementById('group-suggestions');
+    const selectedMembers = document.getElementById('selected-members');
+    const selectedMemberIds = new Set();
+    
+    if (groupMembersInput && groupSuggestions && selectedMembers) {
+      let debounceTimer;
+      
+      groupMembersInput.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        const query = this.value.trim();
+        
+        if (query.length < 2) {
+          groupSuggestions.classList.add('hidden');
+          return;
+        }
+        
+        debounceTimer = setTimeout(() => {
+          fetch(`/api/users/search?q=${encodeURIComponent(query)}`, {
+            headers: {
+              'Accept': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+          })
+          .then(response => response.json())
+          .then(users => {
+            // Filter out already selected users
+            const filteredUsers = users.filter(user => !selectedMemberIds.has(user.id.toString()));
+            
+            if (filteredUsers.length > 0) {
+              groupSuggestions.innerHTML = filteredUsers.map(user => `
+                <div class="p-2 hover:bg-gray-100 cursor-pointer" data-user-id="${user.id}" data-username="${user.username}" data-avatar-url="${user.avatar_url || '/default-avatar.png'}">
+                  <div class="flex items-center">
+                    <img src="${user.avatar_url || '/default-avatar.png'}" alt="${user.username}" class="h-8 w-8 rounded-full mr-2">
+                    <span>${user.username}</span>
+                  </div>
+                </div>
+              `).join('');
+              
+              // Add click handler to user suggestions
+              groupSuggestions.querySelectorAll('[data-user-id]').forEach(suggestion => {
+                suggestion.addEventListener('click', function() {
+                  const userId = this.getAttribute('data-user-id');
+                  const username = this.getAttribute('data-username');
+                  const avatarUrl = this.getAttribute('data-avatar-url');
+                  
+                  // Add to selected members
+                  if (!selectedMemberIds.has(userId)) {
+                    selectedMemberIds.add(userId);
+                    
+                    const memberElement = document.createElement('div');
+                    memberElement.className = 'flex items-center bg-gray-100 rounded-full px-3 py-1 text-sm';
+                    memberElement.innerHTML = `
+                      <img src="${avatarUrl}" alt="${username}" class="h-5 w-5 rounded-full mr-1">
+                      <span>${username}</span>
+                      <button type="button" class="ml-1 text-gray-400 hover:text-gray-600" data-user-id="${userId}">
+                        <span class="sr-only">Remove</span>
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                      <input type="hidden" name="member_ids[]" value="${userId}">
+                    `;
+                    
+                    selectedMembers.appendChild(memberElement);
+                    
+                    // Add event listener to remove button
+                    const removeButton = memberElement.querySelector('button');
+                    removeButton.addEventListener('click', function(e) {
+                      e.stopPropagation();
+                      const userIdToRemove = this.getAttribute('data-user-id');
+                      selectedMemberIds.delete(userIdToRemove);
+                      this.closest('div').remove();
+                    });
+                  }
+                  
+                  // Clear input and hide suggestions
+                  groupMembersInput.value = '';
+                  groupSuggestions.classList.add('hidden');
+                });
+              });
+              
+              groupSuggestions.classList.remove('hidden');
+            } else {
+              groupSuggestions.innerHTML = '<div class="p-2 text-gray-500">No users found or already added</div>';
+              groupSuggestions.classList.remove('hidden');
+            }
+          })
+          .catch(error => {
+            console.error('Error searching users:', error);
+            groupSuggestions.innerHTML = '<div class="p-2 text-red-500">Error searching users</div>';
+            groupSuggestions.classList.remove('hidden');
+          });
+        }, 300);
+      });
+      
+      // Hide suggestions when clicking outside
+      document.addEventListener('click', function(event) {
+        if (!groupMembersInput.contains(event.target) && !groupSuggestions.contains(event.target)) {
+          groupSuggestions.classList.add('hidden');
+        }
+      });
+    }
+    
+    // Handle chat creation
+    const createChatButton = document.getElementById('create-chat-button');
+    
+    if (createChatButton) {
+      createChatButton.addEventListener('click', function() {
+        const chatType = chatTypeSelect.value;
+        let url = '/chats';
+        let data = {};
+        
+        if (chatType === 'direct') {
+          const recipientId = recipientInput.getAttribute('data-user-id');
+          
+          if (!recipientId) {
+            alert('Please select a recipient');
+            return;
+          }
+          
+          data = {
+            chat: {
+              chat_type: 'direct',
+              user_ids: [recipientId]
+            }
+          };
+        } else if (chatType === 'group') {
+          const groupName = document.getElementById('group-name').value.trim();
+          
+          if (!groupName) {
+            alert('Please enter a group name');
+            return;
+          }
+          
+          if (selectedMemberIds.size === 0) {
+            alert('Please add at least one member to the group');
+            return;
+          }
+          
+          data = {
+            chat: {
+              chat_type: 'group',
+              name: groupName,
+              user_ids: Array.from(selectedMemberIds)
+            }
+          };
+        } else if (chatType === 'repository') {
+          const repositoryId = document.getElementById('repository').value;
+          
+          if (!repositoryId) {
+            alert('Please select a repository');
+            return;
+          }
+          
+          data = {
+            chat: {
+              chat_type: 'repository',
+              repository_id: repositoryId
+            }
+          };
+        }
+        
+        // Submit the form
+        fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: JSON.stringify(data),
+          credentials: 'same-origin'
+        })
+        .then(response => {
+          if (!response.ok) {
+            return response.json().then(err => { throw err; });
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.redirect_url) {
+            window.location.href = data.redirect_url;
+          } else {
+            window.location.reload();
+          }
+        })
+        .catch(error => {
+          console.error('Error creating chat:', error);
+          alert(error.error || 'Error creating chat. Please try again.');
+        });
+      });
+    }
+  });
+<% end %>
