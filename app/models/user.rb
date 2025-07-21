@@ -1,4 +1,6 @@
 class User < ApplicationRecord
+  include OnlineStatus
+  
   # Associations
   has_many :user_repositories, dependent: :destroy
   has_many :repositories, through: :user_repositories
@@ -6,6 +8,9 @@ class User < ApplicationRecord
   has_many :chats, through: :chat_users
   has_many :messages, dependent: :destroy
   has_many :unread_messages, dependent: :destroy
+  
+  # Track online status
+  attribute :online, :boolean, default: false
 
   # Validations
   validates :github_id, presence: true, uniqueness: true, numericality: { only_integer: true, greater_than: 0 }
