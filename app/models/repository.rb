@@ -8,12 +8,7 @@ class Repository < ApplicationRecord
   # Validations
   validates :github_repo_id, presence: true, uniqueness: true, numericality: { only_integer: true, greater_than: 0 }
   validates :name, presence: true, length: { maximum: 255 }
-  validates :full_name, presence: true, length: { maximum: 255 }, uniqueness: true
   validates :private, inclusion: { in: [true, false] }
-  validates :html_url, presence: true, format: { with: /\Ahttps?:\/\/github\.com\/.+\/.+\z/, message: 'must be a valid GitHub repository URL' }
-  validates :description, length: { maximum: 1000 }, allow_blank: true
-  validates :language, length: { maximum: 100 }, allow_blank: true
-  validates :default_branch, presence: true, length: { maximum: 100 }
   
   # Scopes
   scope :private_repos, -> { where(private: true) }
@@ -25,6 +20,16 @@ class Repository < ApplicationRecord
 
   # Callbacks
   before_validation :set_defaults, on: :create
+  
+  # Virtual attribute for compatibility with existing code
+  def full_name
+    "#{name}" # In a real app, this would include the owner name if available
+  end
+  
+  def full_name=(value)
+    # Parse owner and repo name from full_name if needed
+    self.name = value.split('/').last if value.present?
+  end
 
   # Instance methods
   def add_user(user, admin: false)

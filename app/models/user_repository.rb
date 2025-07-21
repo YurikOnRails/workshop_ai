@@ -6,7 +6,7 @@ class UserRepository < ApplicationRecord
   # Validations
   validates :user_id, uniqueness: { scope: :repository_id, message: 'is already associated with this repository' }
   validates :admin, inclusion: { in: [true, false] }
-  validates :last_accessed_at, presence: true
+  validates :last_accessed_at, presence: true, on: :update
 
   # Scopes
   scope :admins, -> { where(admin: true) }
@@ -16,6 +16,7 @@ class UserRepository < ApplicationRecord
 
   # Callbacks
   before_validation :set_defaults, on: :create
+  before_validation :set_last_accessed, on: :create
   after_commit :update_repository_timestamps, on: [:create, :destroy]
 
   # Instance methods
@@ -34,8 +35,11 @@ class UserRepository < ApplicationRecord
   private
 
   def set_defaults
-    self.last_accessed_at ||= Time.current
     self.admin = false if admin.nil?
+  end
+  
+  def set_last_accessed
+    self.last_accessed_at = Time.current if last_accessed_at.blank?
   end
 
   def update_repository_timestamps

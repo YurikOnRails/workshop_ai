@@ -17,9 +17,9 @@ class User < ApplicationRecord
   validates :username, presence: true, uniqueness: true, format: { with: /\A[a-z0-9_-]+\z/i, message: 'can only contain letters, numbers, underscores and hyphens' }
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :avatar_url, format: { with: /\Ahttps?:\/\//, message: 'must be a valid URL' }, allow_blank: true
-  validates :public_repos, :total_private_repos, :owned_private_repos, 
-            numericality: { only_integer: true, greater_than_or_equal_to: 0 }, 
-            allow_nil: true
+  validates :private_repos_count, :stars_count, :private_stars_count,
+            numericality: { only_integer: true, greater_than_or_equal_to: 0 },
+            allow_nil: false
   validates :github_created_at, presence: true
 
   # Scopes
@@ -49,10 +49,9 @@ class User < ApplicationRecord
   private
 
   def set_defaults
-    self.public_repos ||= 0
-    self.total_private_repos ||= 0
-    self.owned_private_repos ||= 0
+    self.private_repos_count ||= 0
     self.stars_count ||= 0
+    self.private_stars_count ||= 0
     self.online ||= false
     self.github_created_at ||= Time.current
   end
