@@ -74,10 +74,51 @@ class Message < ApplicationRecord
   end
   
   def create_unread_messages
-    # Create unread message entries for all chat participants except the sender
-    chat.users.where.not(id: user_id).find_each do |participant|
-      unread_messages.create!(user: participant, chat: chat)
+    # Get all chat participants except the sender
+    participants = chat.users.where.not(id: user_id).pluck(:id)
+    return if participants.empty?
+
+    # Get chat users with their last_read_message_id (handle the case where the column might not exist)
+    chat_user_columns = ChatUser.column_names
+    has_last_read_message_id = chat_user_columns.include?('last_read_message_id')
+    
+    # Get the latest message ID that exists in the database
+    latest_message_id = chat.messages.maximum(:id) || 0
+    
+    # Prepare batch inserts for better performance
+    timestamps = { created_at: Time.current, updated_at: Time.current }
+    
+    # Build records for batch insert
+    records = participants.map do |user_id|
+      # For chat_users table, last_read_message_id has a default of 0 and is not nullable
+      last_read_message_id = nil
+      
+      # If we have the column and can query it, get the actual value
+      if has_last_read_message_id
+        chat_user = chat.chat_users.find_by(user_id: user_id)
+        last_read_message_id = chat_user&.last_read_message_id
+        # Only set last_read_message_id if it's a valid message ID (greater than 0 and exists in messages)
+        last_read_message_id = nil if last_read_message_id.to_i <= 0 || last_read_message_id > latest_message_id
+      end
+      
+      # Build the record with last_read_message_id only if it's valid
+      record = {
+        user_id: user_id,
+        chat_id: chat_id,
+        message_id: id,
+        unread_count: 1,
+        created_at: Time.current,
+        updated_at: Time.current
+      }
+      
+      # Only include last_read_message_id if it's a valid message ID
+      record[:last_read_message_id] = last_read_message_id if last_read_message_id.present? && last_read_message_id.to_i > 0
+      
+      record
     end
+    
+    # Use insert_all for batch insert (bypasses validations and callbacks)
+    UnreadMessage.insert_all(records) unless records.empty?
   end
   
   def broadcast_update

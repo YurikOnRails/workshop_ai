@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_21_020438) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_21_043609) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -24,6 +24,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_21_020438) do
     t.datetime "last_read_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "added_by_id", null: false
+    t.integer "last_read_message_id", default: 0
+    t.index ["added_by_id"], name: "index_chat_users_on_added_by_id"
     t.index ["chat_id", "user_id"], name: "index_chat_users_on_chat_and_user", unique: true
     t.index ["chat_id"], name: "index_chat_users_on_chat_id"
     t.index ["last_read_at"], name: "index_chat_users_on_last_read_at"
@@ -41,8 +44,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_21_020438) do
     t.datetime "last_message_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "archived", default: false, null: false
+    t.integer "participants_count", default: 0, null: false
+    t.integer "messages_count", default: 0, null: false
+    t.bigint "last_message_id"
+    t.index ["archived"], name: "index_chats_on_archived"
     t.index ["chat_type"], name: "index_chats_on_chat_type"
     t.index ["last_message_at"], name: "index_chats_on_last_message_at"
+    t.index ["last_message_id"], name: "index_chats_on_last_message_id"
+    t.index ["messages_count"], name: "index_chats_on_messages_count"
+    t.index ["participants_count"], name: "index_chats_on_participants_count"
     t.index ["repository_id", "chat_type"], name: "index_chats_on_repository_id_and_chat_type", unique: true, where: "(repository_id IS NOT NULL)"
     t.index ["repository_id"], name: "index_chats_on_repository_id"
   end
@@ -55,11 +66,13 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_21_020438) do
     t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "message_type", default: "text", null: false
     t.index ["chat_id", "created_at"], name: "index_messages_on_chat_id_and_created_at"
     t.index ["chat_id"], name: "index_messages_on_chat_id"
     t.index ["deleted_at"], name: "index_messages_on_deleted_at"
     t.index ["user_id"], name: "index_messages_on_user_id"
     t.check_constraint "length(TRIM(BOTH FROM content)) > 0 AND length(TRIM(BOTH FROM content)) <= 10000", name: "check_content_length"
+    t.check_constraint "message_type::text = ANY (ARRAY['text'::character varying::text, 'markdown'::character varying::text, 'code'::character varying::text])", name: "check_message_type"
   end
 
   create_table "repositories", force: :cascade do |t|
@@ -77,14 +90,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_21_020438) do
   create_table "unread_messages", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.bigint "chat_id", null: false
-    t.bigint "last_read_message_id", null: false
+    t.bigint "last_read_message_id"
     t.integer "unread_count", default: 0, null: false
     t.datetime "last_notified_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "message_id", null: false
     t.index ["chat_id"], name: "index_unread_messages_on_chat_id"
     t.index ["last_notified_at"], name: "index_unread_messages_on_last_notified_at"
     t.index ["last_read_message_id"], name: "index_unread_messages_on_last_read_message_id"
+    t.index ["message_id"], name: "index_unread_messages_on_message_id"
     t.index ["user_id", "chat_id"], name: "index_unread_messages_on_user_and_chat", unique: true
     t.index ["user_id"], name: "index_unread_messages_on_user_id"
     t.check_constraint "unread_count >= 0", name: "check_unread_count"
@@ -123,12 +138,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_21_020438) do
   end
 
   add_foreign_key "chat_users", "chats"
+  add_foreign_key "chat_users", "messages", column: "last_read_message_id", on_delete: :nullify
   add_foreign_key "chat_users", "users"
+  add_foreign_key "chat_users", "users", column: "added_by_id"
+  add_foreign_key "chats", "messages", column: "last_message_id", on_delete: :nullify
   add_foreign_key "chats", "repositories"
   add_foreign_key "messages", "chats"
   add_foreign_key "messages", "users"
   add_foreign_key "unread_messages", "chats"
-  add_foreign_key "unread_messages", "messages", column: "last_read_message_id"
+  add_foreign_key "unread_messages", "messages"
+  add_foreign_key "unread_messages", "messages", column: "last_read_message_id", on_delete: :nullify
   add_foreign_key "unread_messages", "users"
   add_foreign_key "user_repositories", "repositories"
   add_foreign_key "user_repositories", "users"

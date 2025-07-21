@@ -17,6 +17,9 @@ Dir[Rails.root.join('spec/support/**/*.rb')].each { |f| require f }
 RSpec.configure do |config|
   # Include FactoryBot methods
   config.include FactoryBot::Syntax::Methods
+  
+  # Include ActiveSupport::Testing::TimeHelpers for time travel in tests
+  config.include ActiveSupport::Testing::TimeHelpers
 
   # Use the shoulda-matchers configuration
   Shoulda::Matchers.configure do |shoulda_config|

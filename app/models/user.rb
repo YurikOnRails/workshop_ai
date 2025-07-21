@@ -22,17 +22,13 @@ class User < ApplicationRecord
             allow_nil: false
 
   # Scopes
-  scope :online, -> { where(online: true) }
+  scope :online, -> { where('last_seen_at > ?', 5.minutes.ago) }
   scope :by_username, ->(username) { where('username ILIKE ?', "%#{username}%") }
 
   # Callbacks
   before_validation :set_defaults, on: :create
 
   # Instance methods
-  def update_online_status(online_status)
-    update(online: online_status, last_seen_at: Time.current)
-  end
-
   def display_name
     name.presence || username
   end

@@ -1,4 +1,7 @@
 class ChatUser < ApplicationRecord
+  # Explicitly define the attribute to ensure it's recognized
+  attribute :last_read_message_id, :integer, default: 0
+  
   # Associations
   belongs_to :chat, touch: true
   belongs_to :user
@@ -18,7 +21,6 @@ class ChatUser < ApplicationRecord
   
   # Callbacks
   before_validation :set_joined_at, on: :create
-  after_commit :update_chat_participant_count, on: [:create, :destroy]
   after_commit :notify_participants, on: :create
   
   # Instance methods
@@ -47,8 +49,12 @@ class ChatUser < ApplicationRecord
     left_at.nil?
   end
   
-  def mark_as_read
-    update(last_read_at: Time.current)
+  def mark_as_read(message = nil)
+    if message
+      update(last_read_at: Time.current, last_read_message_id: message.id)
+    else
+      update(last_read_at: Time.current)
+    end
   end
   
   def unread_messages_count
@@ -73,10 +79,6 @@ class ChatUser < ApplicationRecord
     if chat.chat_users.active.where.not(id: id).count >= 2
       errors.add(:base, 'Direct chat cannot have more than 2 participants')
     end
-  end
-  
-  def update_chat_participant_count
-    chat.update(participants_count: chat.chat_users.active.count)
   end
   
   def notify_participants
