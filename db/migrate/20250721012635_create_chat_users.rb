@@ -12,17 +12,17 @@ class CreateChatUsers < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :chat_users, [:chat_id, :user_id], unique: true, name: 'index_chat_users_on_chat_and_user'
+    add_index :chat_users, [ :chat_id, :user_id ], unique: true, name: 'index_chat_users_on_chat_and_user'
     # user_id is already indexed by the foreign key constraint
     add_index :chat_users, :left_at
     add_index :chat_users, :last_read_at
-    
+
     # Add a check to ensure a user can't be added to the same chat twice
     execute <<-SQL
       ALTER TABLE chat_users
       ADD CONSTRAINT unique_chat_user
       UNIQUE (chat_id, user_id);
-      
+
       -- Ensure left_at is after joined_at if both are present
       ALTER TABLE chat_users
       ADD CONSTRAINT check_timeline

@@ -1,6 +1,6 @@
 class User < ApplicationRecord
   include OnlineStatus
-  
+
   # Associations
   has_many :user_repositories, dependent: :destroy
   has_many :repositories, through: :user_repositories
@@ -8,22 +8,22 @@ class User < ApplicationRecord
   has_many :chats, through: :chat_users
   has_many :messages, dependent: :destroy
   has_many :unread_messages, dependent: :destroy
-  
+
   # Track online status
   attribute :online, :boolean, default: false
 
   # Validations
   validates :github_id, presence: true, uniqueness: true, numericality: { only_integer: true, greater_than: 0 }
-  validates :username, presence: true, uniqueness: true, format: { with: /\A[a-z0-9_-]+\z/i, message: 'can only contain letters, numbers, underscores and hyphens' }
+  validates :username, presence: true, uniqueness: true, format: { with: /\A[a-z0-9_-]+\z/i, message: "can only contain letters, numbers, underscores and hyphens" }
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
-  validates :avatar_url, format: { with: /\Ahttps?:\/\//, message: 'must be a valid URL' }, allow_blank: true
+  validates :avatar_url, format: { with: /\Ahttps?:\/\//, message: "must be a valid URL" }, allow_blank: true
   validates :private_repos_count, :stars_count, :private_stars_count,
             numericality: { only_integer: true, greater_than_or_equal_to: 0 },
             allow_nil: false
 
   # Scopes
-  scope :online, -> { where('last_seen_at > ?', 5.minutes.ago) }
-  scope :by_username, ->(username) { where('username ILIKE ?', "%#{username}%") }
+  scope :online, -> { where("last_seen_at > ?", 5.minutes.ago) }
+  scope :by_username, ->(username) { where("username ILIKE ?", "%#{username}%") }
 
   # Callbacks
   before_validation :set_defaults, on: :create

@@ -10,7 +10,7 @@ class CreateRepositories < ActiveRecord::Migration[8.0]
     end
 
     add_index :repositories, :github_repo_id, unique: true
-    add_index :repositories, [:name, :github_repo_id], unique: true
+    add_index :repositories, [ :name, :github_repo_id ], unique: true
     add_index :repositories, :last_synced_at
   end
 end

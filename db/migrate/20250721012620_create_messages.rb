@@ -10,10 +10,10 @@ class CreateMessages < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :messages, [:chat_id, :created_at]
+    add_index :messages, [ :chat_id, :created_at ]
     # user_id is already indexed by the foreign key constraint
     add_index :messages, :deleted_at
-    
+
     # Add a check constraint for content length
     execute <<-SQL
       ALTER TABLE messages

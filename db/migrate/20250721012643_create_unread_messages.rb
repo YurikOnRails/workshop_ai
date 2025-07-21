@@ -10,16 +10,16 @@ class CreateUnreadMessages < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :unread_messages, [:user_id, :chat_id], unique: true, name: 'index_unread_messages_on_user_and_chat'
+    add_index :unread_messages, [ :user_id, :chat_id ], unique: true, name: 'index_unread_messages_on_user_and_chat'
     # chat_id is already indexed by the foreign key constraint
     add_index :unread_messages, :last_notified_at
-    
+
     # Add a check to ensure a user can't have multiple unread entries for the same chat
     execute <<-SQL
       ALTER TABLE unread_messages
       ADD CONSTRAINT unique_user_chat
       UNIQUE (user_id, chat_id);
-      
+
       -- Ensure unread_count is not negative
       ALTER TABLE unread_messages
       ADD CONSTRAINT check_unread_count

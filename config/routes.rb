@@ -3,14 +3,14 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   # Authentication routes
-  get '/auth/:provider/callback', to: 'sessions#create'
-  get '/auth/failure', to: 'sessions#failure'
-  delete '/signout', to: 'sessions#destroy', as: :signout
-  get '/login', to: redirect('/auth/github'), as: :login
+  get "/auth/:provider/callback", to: "sessions#create"
+  get "/auth/failure", to: "sessions#failure"
+  delete "/signout", to: "sessions#destroy", as: :signout
+  get "/login", to: redirect("/auth/github"), as: :login
 
   # Resource routes
-  resources :chats, only: [:index, :show, :new, :create] do
-    resources :messages, only: [:create]
+  resources :chats, only: [ :index, :show, :new, :create ] do
+    resources :messages, only: [ :create ]
     member do
       post :add_participant
       post :remove_participant
@@ -20,7 +20,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :profiles, only: [:show]
+  resources :profiles, only: [ :show ]
 
   # API namespace for AJAX requests
   namespace :api do
@@ -40,13 +40,13 @@ Rails.application.routes.draw do
   end
 
   # ActionCable for WebSockets
-  mount ActionCable.server => '/cable'
+  mount ActionCable.server => "/cable"
 
   # Root route - redirects to chats#index if authenticated, otherwise to login
-  root to: 'home#index'
+  root to: "home#index"
 
   # Catch-all route for client-side routing (for SPA-like behavior)
-  get '*path', to: 'home#index', constraints: ->(request) do
+  get "*path", to: "home#index", constraints: ->(request) do
     !request.xhr? && request.format.html?
   end
 end

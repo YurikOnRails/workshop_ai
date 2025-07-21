@@ -9,10 +9,10 @@ class CreateUserRepositories < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :user_repositories, [:user_id, :repository_id], unique: true, name: 'index_user_repos_on_user_and_repo'
+    add_index :user_repositories, [ :user_id, :repository_id ], unique: true, name: 'index_user_repos_on_user_and_repo'
     # repository_id is already indexed by the foreign key constraint
     add_index :user_repositories, :last_accessed_at
-    
+
     # Add a check to ensure a user can't be added to the same repository twice
     execute <<-SQL
       ALTER TABLE user_repositories

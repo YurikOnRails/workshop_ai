@@ -3,13 +3,13 @@
 module MarkdownHelper
   def render_markdown(text)
     return "" if text.blank?
-    
+
     renderer = Redcarpet::Render::HTML.new(
       filter_html: true,
       hard_wrap: true,
       link_attributes: { target: "_blank", rel: "noopener noreferrer" }
     )
-    
+
     markdown = Redcarpet::Markdown.new(renderer, {
       autolink: true,
       no_intra_emphasis: true,
@@ -23,12 +23,12 @@ module MarkdownHelper
       quote: true,
       footnotes: true
     })
-    
+
     # Sanitize the output to prevent XSS
-    sanitize(markdown.render(text), tags: %w(p br strong em b i code pre blockquote del ins a ul ol li h1 h2 h3 h4 h5 h6 hr table thead tbody th tr td),
-            attributes: %w(href class rel target))
+    sanitize(markdown.render(text), tags: %w[p br strong em b i code pre blockquote del ins a ul ol li h1 h2 h3 h4 h5 h6 hr table thead tbody th tr td],
+            attributes: %w[href class rel target])
   end
-  
+
   def simple_format_markdown(text)
     text = h(text)
     text = text.gsub(/\r?\n/, "<br>")

@@ -8,27 +8,27 @@ class Repository < ApplicationRecord
   # Validations
   validates :github_repo_id, presence: true, uniqueness: true, numericality: { only_integer: true, greater_than: 0 }
   validates :name, presence: true, length: { maximum: 255 }
-  validates :private, inclusion: { in: [true, false] }
-  
+  validates :private, inclusion: { in: [ true, false ] }
+
   # Scopes
   scope :private_repos, -> { where(private: true) }
   scope :public_repos, -> { where(private: false) }
-  scope :by_name, ->(query) { where('name ILIKE ?', "%#{query}%") }
-  scope :by_language, ->(language) { where('language ILIKE ?', "%#{language}%") }
+  scope :by_name, ->(query) { where("name ILIKE ?", "%#{query}%") }
+  scope :by_language, ->(language) { where("language ILIKE ?", "%#{language}%") }
   scope :recently_updated, -> { order(updated_at: :desc) }
   scope :with_users, -> { includes(:users) }
 
   # Callbacks
   before_validation :set_defaults, on: :create
-  
+
   # Virtual attribute for compatibility with existing code
   def full_name
     "#{name}" # In a real app, this would include the owner name if available
   end
-  
+
   def full_name=(value)
     # Parse owner and repo name from full_name if needed
-    self.name = value.split('/').last if value.present?
+    self.name = value.split("/").last if value.present?
   end
 
   # Instance methods

@@ -8,18 +8,18 @@ FactoryBot.define do
     stars_count { 1 }
     private_stars_count { 1 }
     online { false }
-    
+
     trait :admin do
       admin { true }
     end
-    
+
     trait :with_repositories do
       transient do
         repositories_count { 3 }
       end
-      
+
       after(:create) do |user, evaluator|
-        create_list(:repository, evaluator.repositories_count, users: [user])
+        create_list(:repository, evaluator.repositories_count, users: [ user ])
       end
     end
   end

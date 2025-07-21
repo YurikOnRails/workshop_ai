@@ -19,13 +19,13 @@ RSpec.describe UserRepository, type: :model do
       user_repo = build(:user_repository, last_accessed_at: nil)
       expect { user_repo.valid? }.to change { user_repo.last_accessed_at }.from(nil)
     end
-    
-    it { is_expected.to validate_inclusion_of(:admin).in_array([true, false]) }
-    
+
+    it { is_expected.to validate_inclusion_of(:admin).in_array([ true, false ]) }
+
     it 'validates uniqueness of user scoped to repository' do
       user_repo = create(:user_repository)
-      new_user_repo = build(:user_repository, 
-                           user: user_repo.user, 
+      new_user_repo = build(:user_repository,
+                           user: user_repo.user,
                            repository: user_repo.repository)
       expect(new_user_repo).not_to be_valid
       expect(new_user_repo.errors[:user_id]).to include('is already associated with this repository')
@@ -75,7 +75,7 @@ RSpec.describe UserRepository, type: :model do
 
     describe '#revoke_admin' do
       let(:admin_user_repo) { create(:user_repository, admin: true) }
-      
+
       it 'revokes admin rights from the user' do
         expect { admin_user_repo.revoke_admin }.to change { admin_user_repo.reload.admin }.to(false)
       end
@@ -95,7 +95,7 @@ RSpec.describe UserRepository, type: :model do
 
     describe 'after_commit :update_repository_timestamps' do
       let(:repository) { create(:repository) }
-      
+
       it 'touches the repository on create' do
         expect {
           create(:user_repository, repository: repository)

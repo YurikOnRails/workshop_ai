@@ -12,8 +12,8 @@ class CreateChats < ActiveRecord::Migration[8.0]
 
     add_index :chats, :chat_type
     add_index :chats, :last_message_at
-    
+
     # Composite index for private chats (repository chats)
-    add_index :chats, [:repository_id, :chat_type], unique: true, where: "repository_id IS NOT NULL"
+    add_index :chats, [ :repository_id, :chat_type ], unique: true, where: "repository_id IS NOT NULL"
   end
 end
