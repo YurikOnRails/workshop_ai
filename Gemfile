@@ -1,62 +1,70 @@
 source "https://rubygems.org"
+ruby '3.4.4'
 
-# Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem "rails", "~> 8.0.2"
-# The modern asset pipeline for Rails [https://github.com/rails/propshaft]
-gem "propshaft"
-# Use postgresql as the database for Active Record
-gem "pg", "~> 1.1"
-# Use the Puma web server [https://github.com/puma/puma]
-gem "puma", ">= 5.0"
-# Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
-gem "importmap-rails"
-# Build JSON APIs with ease [https://github.com/rails/jbuilder]
-gem "jbuilder"
+# Core
+gem 'rails', '~> 8.0.2'
+gem 'pg', '~> 1.1'
+gem 'puma', '~> 6.4', '>= 6.4.0'
+gem 'importmap-rails'
+gem 'propshaft'
 
-# Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
-# gem "bcrypt", "~> 3.1.7"
+# Authentication
+gem 'omniauth-github', '~> 2.0'
+gem 'omniauth-rails_csrf_protection', '~> 1.0'
 
-# Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem "tzinfo-data", platforms: %i[ windows jruby ]
+# Frontend
+gem 'tailwindcss-rails', '~> 2.0'
+gem 'stimulus-rails', '~> 1.3', '>= 1.3.3'
+gem 'turbo-rails', '~> 2.0', '>= 2.0.4'
 
-# Use the database-backed adapters for Rails.cache, Active Job, and Action Cable
-gem "solid_cache"
-gem "solid_queue"
-gem "solid_cable"
+# Background jobs
+gem 'solid_queue', '~> 1.0.0'
 
-# Reduces boot times through caching; required in config/boot.rb
-gem "bootsnap", require: false
+# Environment variables
+gem 'dotenv-rails', '~> 2.8', '>= 2.8.1', groups: [:development, :test]
 
-# Deploy this application anywhere as a Docker container [https://kamal-deploy.org]
-gem "kamal", require: false
-
-# Add HTTP asset caching/compression and X-Sendfile acceleration to Puma [https://github.com/basecamp/thruster/]
-gem "thruster", require: false
-
-# Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
-# gem "image_processing", "~> 1.2"
-
-gem "faraday"
-gem "sidekiq"
-
+# Testing
 group :development, :test do
-  # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
-  gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
-
-  # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
-  gem "brakeman", require: false
-
-  # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
-  gem "rubocop-rails-omakase", require: false
+  gem 'rspec-rails', '~> 6.1', '>= 6.1.1'
+  gem 'factory_bot_rails', '~> 6.4', '>= 6.4.4'
+  gem 'faker', '~> 3.3', '>= 3.3.1'
+  gem 'webmock', '~> 3.23', '>= 3.23.0'
+  gem 'vcr', '~> 6.2', '>= 6.2.0'
+  gem 'rubocop-rails', '~> 2.25', '>= 2.25.1', require: false
 end
 
 group :development do
-  # Use console on exceptions pages [https://github.com/rails/web-console]
-  gem "web-console"
+  gem 'web-console', '>= 4.2.0'
+  gem 'listen', '~> 3.8'
+  gem 'spring', '~> 4.1'
+  gem 'solargraph', '~> 0.50.0'
 end
 
 group :test do
-  # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
-  gem "capybara"
-  gem "selenium-webdriver"
+  gem 'capybara', '~> 3.39'
+  gem 'selenium-webdriver', '~> 4.15'
+  gem 'webdrivers', '~> 5.2'
+  gem 'shoulda-matchers', '~> 6.1'
+  gem 'database_cleaner-active_record', '~> 2.1'
+end
+
+# Windows does not include zoneinfo files, so bundle the tzinfo-data gem
+gem 'tzinfo-data', platforms: %i[windows jruby]
+
+# Database adapters
+gem "solid_cache"
+gem "solid_queue", "~> 1.0.0"
+gem "solid_cable"
+
+# Performance
+gem "bootsnap", require: false
+gem "kamal", require: false
+gem "thruster", require: false
+
+# HTTP client
+gem "faraday"
+
+group :development, :test do
+  gem "brakeman", require: false
+  gem "debug", platforms: %i[mri windows], require: "debug/prelude"
 end
