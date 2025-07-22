@@ -1,0 +1,113 @@
+<%= link_to chat_path(chat), class: "block hover:bg-gray-50 dark:hover:bg-gray-700 #{'bg-blue-50 dark:bg-blue-900' if defined?(current_chat) && chat.id == current_chat.id}" do %>
+  <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-600">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center min-w-0">
+        <% if chat.chat_type == 'direct' %>
+          <% other_user = chat.users.where.not(id: current_user.id).first %>
+          <div class="relative flex-shrink-0 group" data-controller="tooltip" data-tooltip-text="<%= other_user.online? ? 'Online' : 'Offline' %>">
+            <img class="h-10 w-10 rounded-full" src="<%= other_user.avatar_url || asset_path('default-avatar.png') %>" alt="">
+            <span class="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full <%= other_user.online? ? 'bg-green-400' : 'bg-gray-400' %> ring-2 ring-white dark:ring-gray-800" title="<%= other_user.online? ? 'Online' : 'Last seen #{time_ago_in_words(other_user.last_seen_at)} ago' %>"></span>
+            <div class="tooltip opacity-0 invisible group-hover:opacity-100 group-hover:visible absolute z-10 inline-block px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm -top-12 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
+              <%= other_user.online? ? 'Online' : "Last seen #{time_ago_in_words(other_user.last_seen_at)} ago" %>
+              <div class="absolute w-2 h-2 -bottom-1 left-1/2 transform -translate-x-1/2 rotate-45 bg-gray-900"></div>
+            </div>
+          </div>
+          <div class="ml-3 min-w-0 flex-1">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-medium text-gray-900 truncate"><%= other_user.username %></h3>
+              <% if chat.last_message.present? %>
+                <time datetime="<%= chat.last_message.created_at.iso8601 %>" class="text-xs text-gray-500 ml-2 flex-shrink-0">
+                  <%= time_ago_in_words(chat.last_message.created_at) %> ago
+                </time>
+              <% end %>
+            </div>
+            <p class="text-sm text-gray-500 truncate">
+              <% if chat.last_message.present? %>
+                <% if chat.last_message.user_id == current_user.id %>
+                  You: 
+                <% elsif chat.users_count > 2 %>
+                  <%= chat.last_message.user.username %>: 
+                <% end %>
+                <%= chat.last_message.content_type == 'text' ? truncate(chat.last_message.content, length: 30) : '📎 Attachment' %>
+              <% else %>
+                No messages yet
+              <% end %>
+            </p>
+          </div>
+        <% elsif chat.chat_type == 'group' %>
+          <div class="relative flex-shrink-0">
+            <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-medium">
+              <%= chat.name[0..1].upcase %>
+            </div>
+          </div>
+          <div class="ml-3 min-w-0 flex-1">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-medium text-gray-900 truncate"><%= chat.name %></h3>
+              <% if chat.last_message.present? %>
+                <time datetime="<%= chat.last_message.created_at.iso8601 %>" class="text-xs text-gray-500 ml-2 flex-shrink-0">
+                  <%= time_ago_in_words(chat.last_message.created_at) %> ago
+                </time>
+              <% end %>
+            </div>
+            <p class="text-sm text-gray-500 truncate">
+              <% if chat.last_message.present? %>
+                <%= chat.last_message.user.username %>: 
+                <%= chat.last_message.content_type == 'text' ? truncate(chat.last_message.content, length: 30) : '📎 Attachment' %>
+              <% else %>
+                No messages yet
+              <% end %>
+            </p>
+          </div>
+        <% elsif chat.chat_type == 'repository' && chat.repository.present? %>
+          <div class="relative flex-shrink-0">
+            <div class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">
+              <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                <path fill-rule="evenodd" d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.53.22l.5.5a.75.75 0 01-.53 1.28H4.5A1 1 0 003.5 3v16a1 1 0 001 1h12a1 1 0 001-1v-8.75a.75.75 0 01.22-.53l.5-.5a.75.75 0 011.28.53v9.5a2.5 2.5 0 01-2.5 2.5h-12A2.5 2.5 0 012 19.5v-17z" clip-rule="evenodd" />
+                <path fill-rule="evenodd" d="M7.646 3.146a.5.5 0 01.708 0l3 3a.5.5 0 01-.708.708L8.5 4.707V14.5a.5.5 0 01-1 0V4.707L5.354 6.854a.5.5 0 11-.708-.708l3-3z" clip-rule="evenodd" />
+              </svg>
+            </div>
+          </div>
+          <div class="ml-3 min-w-0 flex-1">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-medium text-gray-900 truncate"><%= chat.repository.full_name %></h3>
+              <% if chat.last_message.present? %>
+                <time datetime="<%= chat.last_message.created_at.iso8601 %>" class="text-xs text-gray-500 ml-2 flex-shrink-0">
+                  <%= time_ago_in_words(chat.last_message.created_at) %> ago
+                </time>
+              <% end %>
+            </div>
+            <p class="text-sm text-gray-500 truncate">
+              <% if chat.last_message.present? %>
+                <%= chat.last_message.user.username %>: 
+                <%= chat.last_message.content_type == 'text' ? truncate(chat.last_message.content, length: 30) : '📎 Attachment' %>
+              <% else %>
+                No messages yet
+              <% end %>
+            </p>
+          </div>
+        <% end %>
+      </div>
+      
+      <% if chat.unread_messages_count > 0 && chat.unread_messages_count_for(current_user) > 0 %>
+        <div class="ml-2 flex-shrink-0">
+          <span class="inline-flex items-center justify-center h-5 w-5 rounded-full bg-indigo-600 text-xs font-medium text-white">
+            <%= chat.unread_messages_count_for(current_user) > 9 ? '9+' : chat.unread_messages_count_for(current_user) %>
+          </span>
+        </div>
+      <% end %>
+    </div>
+    
+    <% if chat.users_count > 2 && chat.chat_type != 'repository' %>
+      <div class="mt-1 flex -space-x-1">
+        <% chat.users.limit(3).each do |user| %>
+          <img class="h-4 w-4 rounded-full border-2 border-white" src="<%= user.avatar_url || asset_path('default-avatar.png') %>" alt="<%= user.username %>" title="<%= user.username %>">
+        <% end %>
+        <% if chat.users_count > 3 %>
+          <span class="h-4 w-4 rounded-full bg-gray-200 border-2 border-white text-center text-xs text-gray-500 flex items-center justify-center">
+            +<%= chat.users_count - 3 %>
+          </span>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>

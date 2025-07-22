@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>GitHub Chat</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="current-user-id" content="<%= current_user&.id %>">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    
+    <%= stylesheet_link_tag "tailwind", "inter-font", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Highlight.js for code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    
+    <!-- Marked.js for markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <style>
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+      }
+      
+      ::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+      }
+      
+      ::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+      }
+      
+      /* Chat specific styles */
+      .chat-container {
+        height: calc(100vh - 4rem);
+      }
+      
+      .chat-sidebar {
+        width: 300px;
+        border-right: 1px solid #e5e7eb;
+      }
+      
+      .chat-messages {
+        height: calc(100% - 120px);
+        overflow-y: auto;
+      }
+      
+      .chat-input {
+        height: 120px;
+        border-top: 1px solid #e5e7eb;
+      }
+      
+      /* Message styles */
+      .message {
+        @apply flex items-start p-3 hover:bg-gray-50 transition-colors;
+      }
+      
+      .message.own-message {
+        @apply flex-row-reverse;
+      }
+      
+      .message-avatar {
+        @apply flex-shrink-0 w-10 h-10 rounded-full overflow-hidden mr-3;
+      }
+      
+      .message-content {
+        @apply flex-1;
+      }
+      
+      .message-header {
+        @apply flex items-center text-sm text-gray-500 mb-1;
+      }
+      
+      .message-username {
+        @apply font-medium text-gray-900 mr-2;
+      }
+      
+      .message-time {
+        @apply text-xs;
+      }
+      
+      .message-edited {
+        @apply text-xs text-gray-400 ml-1;
+      }
+      
+      .message-text {
+        @apply text-gray-800 break-words;
+      }
+      
+      .message-text pre {
+        @apply bg-gray-100 p-3 rounded-md overflow-x-auto text-sm my-2;
+      }
+      
+      .message-text code {
+        @apply font-mono text-sm;
+      }
+      
+      .message-text p {
+        @apply my-1;
+      }
+      
+      .message-text a {
+        @apply text-blue-600 hover:underline;
+      }
+      
+      /* Typing indicator */
+      .typing-indicator {
+        @apply flex items-center text-sm text-gray-500 px-3 py-1;
+      }
+      
+      .typing-dot {
+        @apply w-2 h-2 bg-gray-400 rounded-full mx-1 animate-bounce;
+      }
+      
+      .typing-dot:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      
+      .typing-dot:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+      
+      /* Unread indicator */
+      .unread-marker {
+        @apply absolute left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full whitespace-nowrap;
+      }
+      
+      /* Online status */
+      .online-status {
+        @apply w-3 h-3 rounded-full absolute bottom-0 right-0 border-2 border-white;
+      }
+      
+      .online-status.online {
+        @apply bg-green-500;
+      }
+      
+      .online-status.offline {
+        @apply bg-gray-400;
+      }
+      
+      /* Dark mode */
+      @media (prefers-color-scheme: dark) {
+        body {
+          @apply bg-gray-900 text-gray-100;
+        }
+        
+        .chat-sidebar {
+          @apply border-gray-700 bg-gray-800;
+        }
+        
+        .message {
+          @apply hover:bg-gray-800;
+        }
+        
+        .message-username {
+          @apply text-gray-100;
+        }
+        
+        .message-time, .message-edited {
+          @apply text-gray-400;
+        }
+        
+        .message-text {
+          @apply text-gray-200;
+        }
+        
+        .message-text pre {
+          @apply bg-gray-700 text-gray-200;
+        }
+        
+        .typing-indicator {
+          @apply text-gray-400;
+        }
+        
+        .typing-dot {
+          @apply bg-gray-500;
+        }
+      }
+    </style>
+    
+    <%= yield :head %>
+  </head>
+  
+  <body class="bg-white text-gray-900 antialiased">
+    <div class="flex flex-col h-screen">
+      <!-- Header -->
+      <header class="bg-indigo-600 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center">
+              <svg class="h-8 w-8 text-white mr-2" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" />
+              </svg>
+              <h1 class="text-xl font-bold">GitHub Chat</h1>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+              <% if current_user %>
+                <div class="relative">
+                  <button id="user-menu-button" class="flex items-center space-x-2 focus:outline-none">
+                    <span class="text-sm font-medium"><%= current_user.username %></span>
+                    <div class="relative">
+                      <img class="h-8 w-8 rounded-full" src="<%= current_user.avatar_url || asset_path('default-avatar.png') %>" alt="">
+                      <span class="online-status <%= current_user.online? ? 'online' : 'offline' %>"></span>
+                    </div>
+                  </button>
+                  
+                  <!-- Dropdown menu -->
+                  <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                    <%= link_to 'Your Profile', '#', class: 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' %>
+                    <%= link_to 'Settings', '#', class: 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' %>
+                    <div class="border-t border-gray-100 my-1"></div>
+                    <%= button_to 'Sign Out', sign_out_path, method: :delete, class: 'w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' %>
+                  </div>
+                </div>
+              <% else %>
+                <%= link_to 'Sign in with GitHub', auth_github_path, class: 'inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-indigo-600 bg-white hover:bg-gray-50' %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </header>
+      
+      <!-- Main content -->
+      <main class="flex-1 overflow-hidden">
+        <div class="max-w-7xl mx-auto h-full">
+          <%= yield %>
+        </div>
+      </main>
+      
+      <!-- Flash messages -->
+      <% if notice || alert %>
+        <div class="fixed bottom-4 right-4 z-50">
+          <% if notice %>
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+              <span class="block sm:inline"><%= notice %></span>
+              <button class="absolute top-0 bottom-0 right-0 px-4 py-3" onclick="this.parentElement.remove()">
+                <span class="sr-only">Close</span>
+                <svg class="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          <% end %>
+          
+          <% if alert %>
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-2" role="alert">
+              <span class="block sm:inline"><%= alert %></span>
+              <button class="absolute top-0 bottom-0 right-0 px-4 py-3" onclick="this.parentElement.remove()">
+                <span class="sr-only">Close</span>
+                <svg class="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+    
+    <script>
+      // Toggle user dropdown
+      document.addEventListener('DOMContentLoaded', function() {
+        const userMenuButton = document.getElementById('user-menu-button');
+        const userDropdown = document.getElementById('user-dropdown');
+        
+        if (userMenuButton && userDropdown) {
+          userMenuButton.addEventListener('click', function(e) {
+            e.stopPropagation();
+            userDropdown.classList.toggle('hidden');
+          });
+          
+          // Close dropdown when clicking outside
+          document.addEventListener('click', function(e) {
+            if (!userMenuButton.contains(e.target) && !userDropdown.contains(e.target)) {
+              userDropdown.classList.add('hidden');
+            }
+          });
+        }
+        
+        // Auto-hide flash messages after 5 seconds
+        const flashMessages = document.querySelectorAll('[role="alert"]');
+        flashMessages.forEach(function(flash) {
+          setTimeout(function() {
+            flash.remove();
+          }, 5000);
+        });
+      });
+    </script>
+  </body>
+</html>

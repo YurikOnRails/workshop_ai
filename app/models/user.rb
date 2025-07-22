@@ -1,0 +1,52 @@
+class User < ApplicationRecord
+  include OnlineStatus
+
+  # Associations
+  has_many :user_repositories, dependent: :destroy
+  has_many :repositories, through: :user_repositories
+  has_many :chat_users, dependent: :destroy
+  has_many :chats, through: :chat_users
+  has_many :messages, dependent: :destroy
+  has_many :unread_messages, dependent: :destroy
+
+  # Track online status
+  attribute :online, :boolean, default: false
+
+  # Validations
+  validates :github_id, presence: true, uniqueness: true, numericality: { only_integer: true, greater_than: 0 }
+  validates :username, presence: true, uniqueness: true, format: { with: /\A[a-z0-9_-]+\z/i, message: "can only contain letters, numbers, underscores and hyphens" }
+  validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :avatar_url, format: { with: /\Ahttps?:\/\//, message: "must be a valid URL" }, allow_blank: true
+  validates :private_repos_count, :stars_count, :private_stars_count,
+            numericality: { only_integer: true, greater_than_or_equal_to: 0 },
+            allow_nil: false
+
+  # Scopes
+  scope :online, -> { where("last_seen_at > ?", 5.minutes.ago) }
+  scope :by_username, ->(username) { where("username ILIKE ?", "%#{username}%") }
+
+  # Callbacks
+  before_validation :set_defaults, on: :create
+
+  # Instance methods
+  def display_name
+    name.presence || username
+  end
+
+  def admin_for?(repository)
+    user_repositories.find_by(repository: repository)&.admin?
+  end
+
+  def can_access_repository?(repository)
+    repositories.include?(repository)
+  end
+
+  private
+
+  def set_defaults
+    self.private_repos_count ||= 0
+    self.stars_count ||= 0
+    self.private_stars_count ||= 0
+    self.online ||= false
+  end
+end

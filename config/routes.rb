@@ -1,14 +1,66 @@
 Rails.application.routes.draw do
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
-
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
+  # Health check route
   get "up" => "rails/health#show", as: :rails_health_check
 
-  # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
-  # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
-  # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
+  # Authentication routes
+  get "/auth/:provider/callback", to: "sessions#create"
+  get "/auth/failure", to: "sessions#failure"
+  delete "/signout", to: "sessions#destroy", as: :signout
+  get "/login", to: redirect("/auth/github"), as: :login
 
-  # Defines the root path route ("/")
-  # root "posts#index"
+  # Resource routes
+  resources :chats, only: [ :index, :show, :new, :create ] do
+    resources :messages, only: [ :create ]
+    member do
+      post :add_participant
+      post :remove_participant
+      post :leave
+      post :promote_admin
+      post :demote_admin
+    end
+  end
+
+  resources :profiles, only: [ :show ]
+
+  # API namespace for AJAX requests
+  namespace :api do
+    namespace :v1 do
+      # User endpoints
+      resources :users, only: [ :index, :show ]
+      get "/me", to: "users#me"
+      post "/me/online", to: "users#online"
+      post "/me/offline", to: "users#offline"
+
+      # Chat endpoints
+      resources :chats, only: [ :index, :show ] do
+        member do
+          post :typing
+          post :mark_read
+          post :leave
+        end
+
+        resources :messages, only: [ :index, :create ] do
+          collection do
+            post :read
+          end
+
+          member do
+            post :react
+            get :reactions, to: "reactions#index"
+          end
+        end
+      end
+    end
+  end
+
+  # ActionCable for WebSockets
+  mount ActionCable.server => "/cable"
+
+  # Root route - redirects to chats#index if authenticated, otherwise to login
+  root to: "home#index"
+
+  # Catch-all route for client-side routing (for SPA-like behavior)
+  get "*path", to: "home#index", constraints: ->(request) do
+    !request.xhr? && request.format.html?
+  end
 end
