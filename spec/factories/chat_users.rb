@@ -5,7 +5,7 @@ FactoryBot.define do
     association :chat
     association :user
     association :added_by, factory: :user
-    
+
     # Default attributes
     joined_at { Time.current }
     left_at { nil }
@@ -14,7 +14,7 @@ FactoryBot.define do
     last_read_at { nil }
     last_read_message_id { 0 } # Default to 0 for unread messages
     unread_count { 0 }
-    
+
     # Timestamps
     created_at { 1.week.ago }
     updated_at { 1.week.ago }
@@ -55,7 +55,7 @@ FactoryBot.define do
       transient do
         unread_count_value { 5 }
       end
-      
+
       unread_count { unread_count_value }
       last_read_at { 1.hour.ago }
     end
@@ -100,10 +100,10 @@ FactoryBot.define do
     end
 
     # Factory defaults
-    factory :admin_chat_user, traits: [:admin]
-    factory :muted_chat_user, traits: [:muted]
-    factory :inactive_chat_user, traits: [:inactive]
-    
+    factory :admin_chat_user, traits: [ :admin ]
+    factory :muted_chat_user, traits: [ :muted ]
+    factory :inactive_chat_user, traits: [ :inactive ]
+
     # Ensure left_at is nil for active users
     after(:build) do |chat_user|
       chat_user.left_at = nil if chat_user.left_at.blank? && !chat_user.inactive?

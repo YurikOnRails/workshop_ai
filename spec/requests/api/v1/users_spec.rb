@@ -14,14 +14,14 @@ RSpec.describe 'API::V1::Users', type: :request do
   describe 'GET /api/v1/users' do
     it 'returns a list of users with basic info' do
       get '/api/v1/users', headers: auth_headers
-      
+
       expect(response).to have_http_status(:success)
       json = JSON.parse(response.body)
-      
+
       # Check the response structure
       expect(json).to be_an(Array)
       expect(json.first.keys).to match_array(%w[id username avatar_url online])
-      
+
       # Check if all users are included
       expect(json.size).to eq(User.count)
     end
@@ -30,10 +30,10 @@ RSpec.describe 'API::V1::Users', type: :request do
   describe 'GET /api/v1/users/:id' do
     it 'returns user profile details' do
       get "/api/v1/users/#{other_user.id}", headers: auth_headers
-      
+
       expect(response).to have_http_status(:success)
       json = JSON.parse(response.body)
-      
+
       expect(json).to include(
         'id' => other_user.id,
         'username' => other_user.username,
@@ -54,10 +54,10 @@ RSpec.describe 'API::V1::Users', type: :request do
   describe 'GET /api/v1/me' do
     it 'returns current user details' do
       get '/api/v1/me', headers: auth_headers
-      
+
       expect(response).to have_http_status(:success)
       json = JSON.parse(response.body)
-      
+
       expect(json).to include(
         'id' => user.id,
         'username' => user.username,

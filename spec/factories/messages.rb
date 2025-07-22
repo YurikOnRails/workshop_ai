@@ -90,9 +90,9 @@ FactoryBot.define do
     end
 
     # Factory defaults
-    factory :text_message, traits: [:text]
-    factory :markdown_message, traits: [:markdown]
-    factory :code_message, traits: [:code]
-    factory :system_message, traits: [:system]
+    factory :text_message, traits: [ :text ]
+    factory :markdown_message, traits: [ :markdown ]
+    factory :code_message, traits: [ :code ]
+    factory :system_message, traits: [ :system ]
   end
 end

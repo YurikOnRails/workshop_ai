@@ -27,7 +27,7 @@ FactoryBot.define do
       transient do
         count { 5 }
       end
-      
+
       unread_count { count }
       message_id { 0 }
       last_read_at { nil }
@@ -55,7 +55,7 @@ FactoryBot.define do
     end
 
     # Factory defaults
-    factory :read_message, traits: [:read]
-    factory :unread_message_with_count, traits: [:with_multiple_unread]
+    factory :read_message, traits: [ :read ]
+    factory :unread_message_with_count, traits: [ :with_multiple_unread ]
   end
 end

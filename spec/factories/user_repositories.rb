@@ -67,8 +67,8 @@ FactoryBot.define do
     end
 
     # Factory defaults
-    factory :admin_user_repository, traits: [:admin]
-    factory :write_user_repository, traits: [:write_access]
-    factory :read_only_user_repository, traits: [:read_only]
+    factory :admin_user_repository, traits: [ :admin ]
+    factory :write_user_repository, traits: [ :write_access ]
+    factory :read_only_user_repository, traits: [ :read_only ]
   end
 end

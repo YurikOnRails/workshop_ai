@@ -17,7 +17,7 @@ FactoryBot.define do
     created_at { 1.year.ago }
     updated_at { 1.month.ago }
     pushed_at { 2.weeks.ago }
-    
+
     association :owner, factory: :user
 
     # Repository visibility
@@ -58,19 +58,19 @@ FactoryBot.define do
         admins.each do |admin|
           repository.user_repositories.create(user: admin, admin: true)
         end
-        
+
         # Create users with write access
         writers = create_list(:user, evaluator.write_access_count)
         writers.each do |writer|
           repository.user_repositories.create(user: writer, admin: false, write_access: true)
         end
-        
+
         # Create users with read-only access
         readers = create_list(:user, evaluator.read_access_count)
         readers.each do |reader|
           repository.user_repositories.create(user: reader, admin: false, write_access: false)
         end
-        
+
         # Create regular users if no specific access levels were specified
         if evaluator.admin_count.zero? && evaluator.write_access_count.zero? && evaluator.read_access_count.zero?
           users = create_list(:user, evaluator.users_count)

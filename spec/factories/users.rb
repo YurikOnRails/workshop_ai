@@ -43,7 +43,7 @@ FactoryBot.define do
       end
 
       after(:create) do |user, evaluator|
-        create_list(:chat, evaluator.chats_count, users: [user])
+        create_list(:chat, evaluator.chats_count, users: [ user ])
       end
     end
 
@@ -53,7 +53,7 @@ FactoryBot.define do
       end
 
       after(:create) do |user, evaluator|
-        chat = create(:chat, users: [user])
+        chat = create(:chat, users: [ user ])
         create_list(:message, evaluator.messages_count, user: user, chat: chat)
       end
     end

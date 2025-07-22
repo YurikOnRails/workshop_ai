@@ -26,7 +26,7 @@ RSpec.describe 'API::V1::Reactions', type: :request do
 
     it 'removes reaction when same emoji is sent again' do
       create(:reaction, message: message, user: user, emoji: '👍')
-      
+
       expect {
         post "/api/v1/messages/#{message.id}/react",
              params: { emoji: '👍' },
@@ -41,40 +41,40 @@ RSpec.describe 'API::V1::Reactions', type: :request do
       post "/api/v1/messages/999999/react",
            params: { emoji: '👍' },
            headers: auth_headers
-      
+
       expect(response).to have_http_status(:not_found)
     end
   end
-  
+
   describe 'GET /api/v1/messages/:id/reactions' do
     before do
       create_list(:reaction, 3, message: message, emoji: '👍')
       create_list(:reaction, 2, message: message, emoji: '❤️')
     end
-    
+
     it 'returns reactions summary for a message' do
       get "/api/v1/messages/#{message.id}/reactions",
           headers: auth_headers
-      
+
       expect(response).to have_http_status(:ok)
       expect(json_response).to contain_exactly(
         { 'emoji' => '👍', 'count' => 3, 'reacted' => false },
         { 'emoji' => '❤️', 'count' => 2, 'reacted' => false }
       )
     end
-    
+
     it 'marks reactions made by current user' do
       create(:reaction, message: message, user: user, emoji: '👍')
-      
+
       get "/api/v1/messages/#{message.id}/reactions",
           headers: auth_headers
-      
+
       expect(json_response).to include(
         { 'emoji' => '👍', 'count' => 4, 'reacted' => true }
       )
     end
   end
-  
+
   def json_response
     JSON.parse(response.body)
   end

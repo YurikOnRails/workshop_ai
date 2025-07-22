@@ -65,14 +65,14 @@ FactoryBot.define do
       after(:create) do |chat, evaluator|
         # Add reader to chat if not already a participant
         chat.users << evaluator.reader unless chat.users.include?(evaluator.reader)
-        
+
         # Create unread messages
         create_list(:message, evaluator.unread_count, chat: chat, user: chat.users.where.not(id: evaluator.reader.id).first)
       end
     end
 
-    factory :direct_chat, traits: [:direct, :with_participants]
-    factory :group_chat, traits: [:group, :with_participants]
-    factory :repository_chat, traits: [:repository, :with_participants]
+    factory :direct_chat, traits: [ :direct, :with_participants ]
+    factory :group_chat, traits: [ :group, :with_participants ]
+    factory :repository_chat, traits: [ :repository, :with_participants ]
   end
 end
